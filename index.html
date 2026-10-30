@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>标签查询工具</title>
+<style>
+:root{
+  --bg:#FFF2F6; --surface:#fff; --primary:#FF4D7D; --accent:#E0235B;
+  --fg:#3A2430; --muted:#B05C7E; --hint:#C9A3B2;
+  --hi:#0a7d20; --mid:#0b5fa5; --purple:#C63A72; --line:#F0E2E8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);
+  font:14px/1.6 "Microsoft YaHei UI","Segoe UI",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:10;background:var(--surface);
+  border-bottom:2px solid var(--primary);padding:8px 16px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  box-shadow:0 2px 8px #FF4D7D18}
+h1{font-size:16px;margin:0;color:var(--primary);white-space:nowrap}
+.stat{font-size:12px;color:var(--muted)}
+.stat b{color:var(--accent)}
+.dim{color:var(--hint)}
+main{padding:12px 16px 60px;max-width:1900px;margin:0 auto}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+input[type=text]{flex:1;min-width:260px;padding:10px 14px;border:1px solid #E0D6D2;
+  border-radius:8px;font-size:15px;background:var(--surface);color:var(--fg)}
+input[type=text]:focus{outline:none;border-color:var(--primary);
+  box-shadow:0 0 0 3px #FF4D7D22}
+button{padding:9px 15px;border:0;border-radius:8px;background:var(--primary);
+  color:#fff;font-weight:600;cursor:pointer;font-size:13px;white-space:nowrap}
+button:hover{background:var(--accent)}
+button.ghost{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+button.ghost:hover{background:#FFE8EF}
+button:active{transform:translateY(1px)}
+select{padding:8px 10px;border:1px solid #E0D6D2;border-radius:8px;background:#fff;
+  font-size:13px;color:var(--fg);max-width:260px}
+label.chk{display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;
+  color:var(--fg)}
+label.chk input{accent-color:var(--primary);width:15px;height:15px}
+#cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));
+  gap:10px;margin-top:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:8px 10px;align-self:start}
+.card h3{margin:0 0 6px;font-size:13px;color:var(--accent);
+  border-bottom:1px dashed var(--line);padding-bottom:5px;
+  position:sticky;top:52px;background:var(--surface);z-index:2}
+.card h3 span{color:var(--hint);font-weight:400}
+/* ★ 分类列表模式：官方组 / 兜底字段 */
+.card.official{border-color:#B9D3F0;background:linear-gradient(180deg,#F6FAFF,#fff 60%)}
+.card h3.grp{user-select:none}
+.card h3.grp:hover{filter:brightness(.97)}
+.card h3 .tg{color:var(--hint);font-size:11px}
+.badge{font-size:10px;padding:1px 5px;border-radius:4px;font-weight:600;
+  vertical-align:1px;margin-right:2px}
+.badge.off{background:#E3EEFB;color:#2C6BB5;border:1px solid #B9D3F0}
+.badge.biz{background:#F2F2F4;color:#7A7A85;border:1px solid #E0E0E5}
+.synb{font-size:10px;background:#FCE6EF;color:#B6295C;border:1px solid #F2C6D8;
+  padding:1px 5px;border-radius:4px;font-weight:600}
+.row{display:flex;align-items:baseline;gap:5px;padding:1.5px 4px;cursor:pointer;
+  border-radius:5px;line-height:1.5}
+.row:hover{background:#FFF7FA}
+.row .box{color:var(--hint);font-size:15px;line-height:1.2;flex:0 0 auto}
+.row.on .box{color:var(--primary)}
+.row .mark{font-size:12px;flex:0 0 auto}
+.row .en{font-family:Consolas,"Cascadia Mono",monospace;font-size:13px;
+  word-break:break-all}
+.row .cn{font-size:12px;color:var(--fg);flex:0 0 auto}
+.row .fr{font-size:11px;color:var(--hint);flex:0 0 auto}
+.row .fr.nsfw{color:var(--accent);font-weight:600}
+.row.high .en{color:var(--hi);font-weight:600}
+.row.mid  .en{color:var(--mid)}
+.row.low  .en{color:#9a9a9a}
+.row.low  .cn{color:#bbb}
+.row.syn  .en,.row.syn .cn,.row.syn .fr{color:var(--purple);font-weight:600}
+.out{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;margin-top:12px}
+.out h3{margin:0 0 6px;font-size:13px;color:var(--accent);
+  display:flex;align-items:center;gap:8px}
+.out h3 .sp{flex:1}
+.out textarea{width:100%;min-height:62px;border:1px solid var(--line);
+  border-radius:8px;padding:9px;font:12px/1.6 Consolas,"Cascadia Mono",monospace;
+  resize:vertical;background:#FAFDFA;color:#26402e}
+.out .zh{font-size:12px;color:var(--muted);margin-top:5px;
+  word-break:break-all;min-height:18px}
+#selbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:6px 10px;margin-bottom:8px;font-size:12px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#selbox .lb{color:var(--primary);font-weight:700;flex:0 0 auto}
+.chip{background:var(--primary);color:#fff;border-radius:11px;padding:1px 9px;
+  font-size:11px;cursor:pointer;user-select:none;white-space:nowrap}
+.chip:hover{background:var(--accent)}
+.chip:hover::after{content:""}
+#budget{font-size:12px;color:var(--muted)}
+#hint{font-size:12px;color:var(--purple);min-height:18px}
+.legend{font-size:12px;color:var(--muted)}
+.legend .p{color:var(--purple);font-weight:600}
+.legend .sus{color:#B8860B;font-weight:600;border-bottom:1px dotted #B8860B}
+/* ★ 组装控制 */
+.modetag{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:9px;
+  background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7}
+.modetag.man{background:#FFF3E0;color:#E65100;border-color:#FFCC80}
+.hint2{font-size:11.5px;color:#B8860B;font-weight:600}
+textarea:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 2px rgba(255,77,125,.12)}
+/* ★ 高命中自动组装标记 */
+.row.auto{background:#F0F7FF}
+.row.auto:hover{background:#E3F0FF}
+.row.auto .en::before{content:"⚡";color:#1976D2;font-size:10px;margin-right:3px}
+.legend .au{color:#1976D2;font-weight:600}
+/* ★ 右键菜单 */
+.ctxmenu{position:fixed;z-index:999;background:#fff;border:1px solid var(--peach);
+  border-radius:8px;box-shadow:0 6px 22px rgba(180,80,120,.22);padding:4px 0;
+  font-size:13px;min-width:150px}
+.ctxmenu div{padding:7px 16px;cursor:pointer;color:var(--fg)}
+.ctxmenu div:hover{background:#FFF2F6;color:var(--primary)}
+/* ★ 泛称提示框 */
+.hintbox{position:fixed;z-index:998;background:#FFFDF5;border:1px solid #F0D9A0;
+  border-radius:8px;box-shadow:0 6px 20px rgba(180,150,60,.2);padding:10px 14px;
+  font-size:12.5px;max-width:460px;line-height:1.7;color:#6B5A20}
+.hintbox b{color:#B8860B}
+.hintbox .alt{display:inline-block;background:#fff;border:1px solid #E8D9A8;
+  border-radius:5px;padding:1px 7px;margin:2px 3px;cursor:pointer;font-family:Consolas,monospace}
+.hintbox .alt:hover{background:#FFF6D9;border-color:#B8860B}
+/* ★ 跳过词提示 */
+.skip{font-size:11.5px;color:#999}
+.skip b{color:#C63A72}
+/* ★ 锁定态文本框 */
+textarea[readonly]{background:#F7F7F7;color:#777}
+/* ★ 接地可疑：淡黄底 + 虚线下划线 */
+.row.susp{background:#FFFBEB}
+.row.susp:hover{background:#FFF6D9}
+.row.susp .en{text-decoration:underline dotted #B8860B;text-underline-offset:3px}
+.row.susp .cn::after{content:" ⚠";color:#B8860B;font-size:10px}
+footer{position:fixed;left:0;right:0;bottom:0;background:var(--surface);
+  border-top:1px solid var(--line);padding:5px 16px;font-size:11px;
+  color:var(--hint);display:flex;gap:16px;align-items:center}
+footer b{color:var(--muted)}
+
+/* ★ 子类分组标题 */
+.subh{display:flex;align-items:center;gap:6px;margin:8px 0 4px;padding:3px 8px;
+  font-size:11.5px;font-weight:600;letter-spacing:.4px;
+  color:var(--accent,#E0235B);background:rgba(224,35,91,.09);
+  border-left:3px solid var(--accent,#E0235B);border-radius:3px}
+.subh b{font-weight:700}
+.subh span{color:var(--dim,#888);font-weight:400;font-size:11px}
+.subh:first-child{margin-top:4px}
+
+.subh{cursor:pointer;transition:background .12s}
+.subh:hover{background:rgba(224,35,91,.2)!important}
+.subh.on{background:rgba(224,35,91,.28)!important;box-shadow:inset 0 0 0 1.5px var(--accent,#E0235B)}
+.subbar{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:7px 12px;
+  background:rgba(224,35,91,.14);border-radius:5px;font-size:12.5px;
+  color:var(--accent,#E0235B)}
+.subbar b{font-weight:700}
+.subbar button{margin-left:auto;padding:3px 12px;font-size:12px;cursor:pointer;
+  background:var(--accent,#E0235B);color:#fff;border:0;border-radius:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>标签查询工具</h1>
+  <span class="stat" id="stat">正在加载词库…</span>
+  <span style="flex:1"></span>
+  <span class="stat">Edge 浏览器版 · 本地运行 · 无需联网</span>
+</header>
+
+<main>
+  <div class="bar">
+    <input type="text" id="q" autofocus
+      placeholder="用中文描述画面">
+    <button id="btnMatch">匹配</button>
+    <button class="ghost" id="btnClear">清空</button>
+    <button class="ghost" id="btnUserSyn" title="添加自己的中文=英文映射（存在本机）">＋自定义映射</button>
+    <button class="ghost" id="btnUserList" title="查看/编辑/清空自定义映射">映射管理</button>
+    <button class="ghost" id="btnLog" title="查看选择记录">选择记录</button>
+    <button class="ghost" id="btnLogCsv" title="导出选择记录为 CSV">导出</button>
+  </div>
+
+  <div class="bar">
+    <label class="chk">模型
+      <select id="model"></select></label>
+    <select id="rating" style="max-width:130px"></select>
+    <!-- ★ 2026-10-24：原来是「排列」下拉框（模型推荐 / 旧版兼容顺序 / 普通标签按我的顺序），
+         用户人工实测后决定只保留「模型推荐」，另外两种舍弃，所以下拉框改成静态标签。
+         JS 里 ORDER_MODE 变量和三个分支代码都保留（见 app.js 的注释），
+         将来如需回退只需恢复这个 select。 -->
+    <span class="stat" title="标签拼进提示词的先后顺序：按当前模型的推荐顺序排列（主体 → 外观 → 表情 → 服装 → 场景）。&#10;质量词放最前还是最后，由模型自身决定。">排列：模型推荐</span>
+    <span class="stat" id="mparam"></span>
+    <span style="flex:1"></span>
+    <label class="chk">标记
+      <select id="tier" style="max-width:92px">
+        <option value="全部">全部</option>
+        <option value="NSFW">NSFW</option>
+        <option value="SFW">SFW</option>
+      </select></label>
+  </div>
+
+  <div class="bar">
+    <label class="chk">风格
+      <select id="style" style="max-width:190px"></select></label>
+    <button class="ghost" id="btnStyle">＋风格</button>
+    <label class="chk">专属
+      <select id="excl" style="max-width:180px"></select></label>
+    <button class="ghost" id="btnExcl">＋专属</button>
+    <button class="ghost" id="btnClearStyle">清空</button>
+  </div>
+
+  <div class="bar">
+    <label class="chk"><input type="checkbox" id="chkHand">手脚强化</label>
+    <label class="chk"><input type="checkbox" id="chkDec">去码</label>
+    <label class="chk"><input type="checkbox" id="chkFur">兽人排除</label>
+    <label class="chk" title="色彩优化：正向加 13 个色彩强化词（vibrant colors 等），负向加 6 个反色词（monochrome 等）。正向有饱和词时自动避让 oversaturated"><input type="checkbox" id="chkColor">色彩强化</label>
+    <label class="chk" title="排除半身/肖像构图，强制出全身。若正向已选特写/上半身/肖像/牛仔镜头，会自动避让不重复排除"><input type="checkbox" id="chkBody">全身保护</label>
+    <span style="flex:1"></span>
+    <span id="budget"></span>
+  </div>
+
+  <!-- ★★ 2026-10-30：精简建议区
+       按 GPT 要求做「生成精简方案」而非「一键精简」：
+         · 只在 token 超预算时出现
+         · 默认收起，点「查看建议」展开
+         · 每一项都写明理由（不只是 priority 数字）
+         · 绝不自动删除任何标签 -->
+  <div id="trimPanel" style="display:none;margin:4px 0 8px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:rgba(255,170,60,.06)">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <b id="trimTitle" style="font-size:12px;color:#e6c07b"></b>
+      <span style="flex:1"></span>
+      <button class="ghost" id="btnTrimShow" style="font-size:12px">查看建议</button>
+      <button class="ghost" id="btnTrimHide" style="font-size:12px;display:none">收起</button>
+    </div>
+    <div id="trimBody" style="display:none;margin-top:8px;font-size:12px"></div>
+  </div>
+
+  <!-- ★ 组装控制区 -->
+  <div class="bar" id="assemble">
+    <label class="chk" title="自动=按勾选重组并覆盖文本框；手动=保留你改的内容，不被覆盖">
+      <input type="checkbox" id="chkManual">手动输入</label>
+    <span id="modeTag" class="modetag">自动</span>
+    <button class="ghost" id="btnAppend"
+      title="按 15 字段顺序补回缺失的自动词；你自己新增的词保留在末尾">＋ 追加新词</button>
+    <button class="ghost" id="btnRestore"
+      title="放弃手动改动，回到自动组装">↻ 恢复自动</button>
+    <label class="chk" title="描述里明确出现的词，词库有对应条目却因限额被挤掉的，自动补回并勾选">
+      <input type="checkbox" id="chkAuto" checked>高命中自动组装</label>
+    <label class="chk" title="默认关闭。开启后只做「互斥提醒」，不会删除任何词 —— 有些组合是要同时用的（如笑中带泪）">
+      <input type="checkbox" id="chkMutex" checked>互斥提醒</label>
+    <label class="chk" title="新分类视图：把标签按 16 个创作维度重新分组（身份规格/角色作品/外貌/发型/眼睛表情/服装/配饰/姿势/互动/身体细节/道具/场景/时间天气/构图/光影/风格）。&#10;&#10;只是换个看法 —— 勾选状态、提示词内容、输出顺序完全不变。&#10;默认关闭，想尝鲜可以打开。">
+      <input type="checkbox" id="chkLayoutV2">16 类视图</label>
+    <span style="flex:1"></span>
+    <span id="asinfo"></span>
+  </div>
+
+  <div id="selbox">
+    <span class="lb">已选：</span>
+    <span id="selnone" class="dim">无</span>
+    <span id="selstyle" style="display:contents"></span>
+  </div>
+
+  <div class="bar">
+    <span class="legend">★ 高置信　◆ 中置信　· 低置信　<span class="p">紫=映射表命中</span>　
+      <span class="au">⚡=高命中组装</span>　<span class="sus">虚=接地可疑</span></span>
+    <button class="ghost" id="btnHi">只勾★</button>
+    <button class="ghost" id="btnHiMid">勾★+◆</button>
+    <button class="ghost" id="btnNone">全不选</button>
+    <label class="chk" title="反查每个候选在描述里有没有依据；可疑的只标记不删除">
+      <input type="checkbox" id="chkGround" checked>接地检查</label>
+    <span style="flex:1"></span>
+    <span class="stat" id="cnt"></span>
+    <span id="hint"></span>
+  </div>
+
+  <div class="bar">
+    <button class="ghost" id="btnCopySel" title="复制当前勾选的所有词（按 15 字段顺序）">复制选中行</button>
+    <button class="ghost" id="btnCopyAll" title="复制全部候选词（按 15 字段顺序）">复制全部结果</button>
+    <button class="ghost" id="btnExtra" title="角色/作品/画师库是独立的扩展库（约 14.6 万条，来自 ai-prompt-supermarket，MIT 许可）。默认不加载，点这里才载入；载入后搜索会同时查角色名、作品名和画师名。">🔎 角色/作品/画师库</button>
+    <span class="skip" id="skipinfo" title="被风格冲突过滤掉的词"></span>
+    <span style="flex:1"></span>
+    <span class="stat" id="tierinfo"></span>
+  </div>
+
+  <!-- ★ 角色/作品扩展库结果（与 15 字段主库分开显示，互不干扰） -->
+  <div id="extracards"></div>
+
+  <div id="cards"></div>
+
+  <!-- ★ 右键菜单 -->
+  <div id="ctxmenu" class="ctxmenu" hidden>
+    <div data-act="pos">✓ 加入正向</div>
+    <div data-act="neg">✕ 加入负向</div>
+    <div data-act="copy">⧉ 复制该词条</div>
+    <div data-act="search">🔍 搜索这个词</div>
+    <!-- ★ 2026-10-25 新增：钉住。清空时保留被钉住的标签。
+         只是「清空时跳过」，标签本身不删、不被隐藏，符合项目「绝不删除」的原则。 -->
+    <div data-act="pin">📌 钉住（清空时保留）</div>
+    <div data-act="unpin">📍 取消钉住</div>
+  </div>
+
+  <!-- ★ 泛称→精准推荐提示 -->
+  <div id="hintbox" class="hintbox" hidden></div>
+
+  <div class="out">
+    <h3>正向提示词
+      <span class="sp"></span>
+      <span class="hint2" id="posHint"></span>
+      <button class="ghost" style="padding:4px 10px" id="btnAppendPos"
+        title="把缺失的自动词按字段顺序补回正向">＋追加</button>
+      <button class="ghost" style="padding:4px 10px" id="btnZhPos"
+        title="把框里的英文词批量翻译成中文，显示在下面">译</button>
+      <button class="ghost" style="padding:4px 10px" id="btnLockPos"
+        title="锁定后无法编辑，防止误改">🔒</button>
+      <button class="ghost" style="padding:4px 12px"
+        onclick="(function(b){var t=document.getElementById('pos');t.select();
+          document.execCommand('copy');b.textContent='已复制';
+          setTimeout(function(){b.textContent='复制'},1200);})(this)">复制</button>
+    </h3>
+    <textarea id="pos" spellcheck="false"
+      placeholder="勾选候选词后这里会自动组装；也可以直接在这里手动增删改"></textarea>
+    <div class="zh" id="poszh"></div>
+  </div>
+
+  <div class="out">
+    <h3>负向提示词
+      <span class="sp"></span>
+      <span class="hint2" id="negHint"></span>
+      <button class="ghost" style="padding:4px 10px" id="btnAppendNeg"
+        title="把缺失的自动词按字段顺序补回负向">＋追加</button>
+      <button class="ghost" style="padding:4px 10px" id="btnZhNeg"
+        title="把框里的英文词批量翻译成中文，显示在下面">译</button>
+      <button class="ghost" style="padding:4px 10px" id="btnLockNeg"
+        title="锁定后无法编辑，防止误改">🔒</button>
+      <button class="ghost" style="padding:4px 12px"
+        onclick="(function(b){var t=document.getElementById('neg');t.select();
+          document.execCommand('copy');b.textContent='已复制';
+          setTimeout(function(){b.textContent='复制'},1200);})(this)">复制</button>
+    </h3>
+    <textarea id="neg" spellcheck="false"
+      placeholder="负向提示词；也可以直接在这里手动增删改"></textarea>
+    <div class="zh" id="negzh"></div>
+  </div>
+</main>
+
+<footer>
+  <span>数据：<b id="fdb">—</b></span>
+  <span>构建：<b id="fbuilt">—</b></span>
+  <span style="flex:1"></span>
+  <!-- 来源与许可（公开发布要求）：详见同目录 THIRD-PARTY-NOTICES.txt -->
+  <span title="本工具以 MIT 许可发布。数据来源：Danbooru 公开 API（标签体系）· ai-prompt-supermarket（角色/作品/画师，MIT）· 生成式 AI 辅助标注。完整声明见 THIRD-PARTY-NOTICES.txt">
+    <b>MIT</b> 许可 · 数据源 Danbooru / ai-prompt-supermarket
+  </span>
+</footer>
+
+<!-- ★ 数据（顺序不能变：library 必须先加载） -->
+<script src="lib/library.js"></script>
+<script src="lib/mapping.js"></script>
+<script src="lib/tgroup.js"></script>
+<script src="lib/models.js"></script>
+<script src="lib/constants.js"></script>
+<script src="lib/subcat.js"></script>
+<script src="lib/manifest.js"></script>
+<script src="lib/impl.js"></script>
+<script src="lib/homophone.js"></script>
+<script src="lib/roles.js"></script>
+<script src="lib/profiles.js"></script>
+<script src="lib/synlabels.js"></script>
+<!-- ★ 2026-10-27：父子关系表，用于组装时抑制冗余上位词 -->
+<script src="lib/parentmap.js"></script>
+<script src="lib/extra/loader.js"></script>
+<script src="lib/engine.js"></script>
+<script src="lib/ground.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){
+  function fill(){
+    if (window.MANIFEST) {
+      var a=document.getElementById('fdb');
+      if(a) a.textContent = window.MANIFEST.db + '（' + window.MANIFEST.rows.toLocaleString() + ' 词）';
+      var b=document.getElementById('fbuilt');
+      if(b) b.textContent = window.MANIFEST.built;
+    } else setTimeout(fill, 80);
+  }
+  fill();
+})();
+</script>
+</body>
+</html>

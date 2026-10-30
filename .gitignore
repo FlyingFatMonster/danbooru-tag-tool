@@ -1,0 +1,21 @@
+# 用户本地配置（每个人不同，不要提交）
+_浏览器设置.txt
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 临时文件
+*.log
+*.tmp
+~$*
+
+# 备份文件
+*.gbk_backup
+*_backup.*

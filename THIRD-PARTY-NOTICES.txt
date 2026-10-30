@@ -1,0 +1,207 @@
+════════════════════════════════════════════════════════════════════════════════
+  第三方数据来源与许可声明
+  标签查询工具（自动版）
+  最后更新：2026-10-31
+════════════════════════════════════════════════════════════════════════════════
+
+  本工具由原创代码与多来源数据组合而成。本文件列出所有第三方来源及其许可，
+  以遵守相应许可条款。分发本工具时必须保留本文件。
+
+
+════════════════════════════════════════════════════════════════════════════════
+  一、原创部分（本工具作者所有）
+────────────────────────────────────────────────────────────────────────────────
+
+  以下文件为原创代码，采用 MIT 许可证（全文见同目录 LICENSE 文件）：
+
+    index.html
+    app.js
+    启动.bat
+    lib\engine.js          匹配引擎
+    lib\constants.js       风格表 / 专属词 / 负向 / 泛称推荐
+    lib\subcat.js          15 字段细分规则
+    lib\ground.js          接地检查
+    lib\homophone.js       同音字表
+    lib\manifest.js        数据版本信息
+    lib\models.js          模型预设
+    lib\profiles.js        模型 profile
+    lib\extra\loader.js    扩展库加载器（代码部分）
+
+  Copyright (c) 2026 标签查询工具 作者
+  SPDX-License-Identifier: MIT
+
+
+════════════════════════════════════════════════════════════════════════════════
+  二、数据部分（各来源分列）
+────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────
+  2.1  角色 / 作品 / 画师库
+────────────────────────────────────────────────────────────────────────────────
+
+  文件：  lib\extra\pack_cn_chars.js    角色 97,318 条
+          lib\extra\pack_cn_works.js    作品 17,152 条
+          lib\extra\pack_cn_artists.js  画师 31,568 条
+
+  来源：  ai-prompt-supermarket
+          https://github.com/BFRKQSB7/ai-prompt-supermarket
+
+  许可：  MIT License
+
+  版权：  Copyright (c) 2026 BFRKQSB7
+
+  处理说明：
+    · 原始数据已按本工具需求做离线预处理：
+        - 剔除纯英文名的画师 117,237 条
+        - 拆分括号名得到「主名」
+        - 提取括号内的别名列表
+        - 生成紧凑字段格式（e/d/b/k/a/u）
+    · 原始数据中的 post_count（热度）字段已在预处理阶段完全剔除
+    · 本工具未使用原始数据的任何热度信息
+
+  ★ MIT 许可证要求保留版权声明与许可声明，全文如下：
+
+    MIT License
+
+    Copyright (c) 2026 BFRKQSB7
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+
+────────────────────────────────────────────────────────────────────────────────
+  2.2  Danbooru 公开数据
+────────────────────────────────────────────────────────────────────────────────
+
+  文件：  lib\impl.js      Danbooru 隐含关系（tag_implications）+ 子类索引
+          lib\tgroup.js    Danbooru 官方 tag_groups 分类表
+          lib\library.js   标签词库（标签名、分类号、分级，源自 Danbooru 标签体系）
+
+  来源：  Danbooru 公开站点与 API
+          https://danbooru.donmai.us/
+          API 端点：
+            /tag_implications.json      隐含关系
+            /tag_groups.json            官方分类分组
+            /wiki_pages.json            标签 wiki 正文（含 [[Tag group:Xxx]] 标注）
+            /tags.json                  标签列表、分类号、分级
+
+  性质：  Danbooru 是公开的标签图库站点，其标签体系（tag vocabulary）是
+          事实性数据集合，通过公开 API 可自由读取。
+
+  处理说明：
+    · 只取用标签名、分类号、分级、隐含关系、官方分组这些结构化字段
+    · post_count（热度）虽可从 API 获取，但已被完全剔除，从未写入任何文件
+    · 中文翻译为后续人工/AI 校对产物，不属于 Danbooru 原始数据
+
+  ★ 声明：
+    本工具与 Danbooru 官方无任何关联，未获其背书或授权。
+    「Danbooru」为其各自权利人的商标，此处仅作来源说明之用。
+    如需商用或大规模再分发，建议自行确认 Danbooru 的最新服务条款：
+    https://danbooru.donmai.us/terms_of_service
+
+
+────────────────────────────────────────────────────────────────────────────────
+  2.3  生成式 AI 辅助产出的标注数据
+────────────────────────────────────────────────────────────────────────────────
+
+  文件：  lib\roles.js        标签的 promptRole 标注（51,116 条）
+          lib\synlabels.js    同义组首选 / 父子关系 / 应删除项
+          lib\parentmap.js    父子关系统计表（13,616 个下位词）
+          lib\mapping.js      中文→英文映射表（76,431 键）
+          lib\library.js      （部分）中文名翻译与校对
+
+  说明：  上述文件中相当一部分内容，是在生成式 AI 模型（GPT / Grok 等）的
+          辅助下完成标注、翻译、校对和关系推导的。
+
+  处理说明：
+    · AI 产出仅作为数据处理辅助手段，最终文件经人工抽查与回归测试验证
+    · 未直接复制任何 AI 服务的受版权保护的输出内容
+    · 不含任何 AI 服务商的水印、标识或专有格式
+
+  ★ 声明：
+    AI 辅助生成内容的版权归属在不同法域存在不确定性。
+    本工具作者不对此类内容主张排他性权利，亦不保证其在所有法域均可自由使用。
+    如你计划商用，建议自行做法律评估。
+
+
+────────────────────────────────────────────────────────────────────────────────
+  2.4  其他
+────────────────────────────────────────────────────────────────────────────────
+
+  文件：  lib\extra\loader.js（WebView2 相关部分，如有）
+          —— 无第三方代码依赖
+
+  本工具运行时不加载任何外部网络资源、CDN、字体或追踪脚本。
+  WebView2 为微软随 Windows 提供的系统组件，不在本工具分发范围内。
+
+
+════════════════════════════════════════════════════════════════════════════════
+  三、本工具不包含的内容
+────────────────────────────────────────────────────────────────────────────────
+
+  ✗ post_count / 热度 / 点赞数 / 浏览量 —— 从未写入任何数据文件
+  ✗ Danbooru 的图片、缩略图或媒体文件
+  ✗ 任何 AI 模型权重
+  ✗ 任何追踪、统计、遥测代码
+  ✗ 任何网络请求代码（工具完全离线运行）
+
+
+════════════════════════════════════════════════════════════════════════════════
+  四、分发要求
+────────────────────────────────────────────────────────────────────────────────
+
+  本工具以 MIT 许可分发。再分发时你必须：
+
+    ① 保留本文件（THIRD-PARTY-NOTICES.txt）
+    ② 保留 LICENSE 文件（MIT 全文）
+    ③ 保留各数据文件头部的来源注释
+    ④ 不得删除或修改任何版权声明
+
+  允许：
+    ✅ 自由使用、修改、再分发（含商用）
+    ✅ 打包进自己的项目
+    ✅ 修改代码后以不同名字发布
+
+  不允许：
+    ❌ 删除版权声明后声称为自己原创
+    ❌ 要求下游接受额外限制
+
+
+════════════════════════════════════════════════════════════════════════════════
+  五、免责声明
+────────────────────────────────────────────────────────────────────────────────
+
+  本工具按「原样」提供，不附带任何担保。
+
+  · 本工具不对生成内容做任何审查或过滤
+  · 使用本工具产生的内容及其合法性，由使用者自行负责
+  · 使用者应遵守所在国家/地区的法律法规
+  · 作者不对因使用本工具造成的任何直接或间接损失承担责任
+
+  本工具的设计原则之一是「不审核内容」。这意味着一视同仁地提供全部标签，
+  不代表作者认同或鼓励任何特定内容。
+
+
+════════════════════════════════════════════════════════════════════════════════
+  六、联系方式
+────────────────────────────────────────────────────────────────────────────────
+
+  如发现数据来源标注有误，或认为本工具侵犯了你的权利，请通过分发渠道联系作者，
+  我们会在核实后尽快处理。
+
+════════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,32 @@
+# 统一换行符，避免跨平台问题
+* text=auto
+
+# Windows 批处理必须 CRLF，否则在 Windows 上无法运行
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# 其余统一 LF
+*.js   text eol=lf
+*.html text eol=lf
+*.css  text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.json text eol=lf
+
+# 数据文件是单行超长 JS，禁止 diff（避免 Git 卡死）
+lib/library.js        -diff
+lib/mapping.js        -diff
+lib/impl.js           -diff
+lib/roles.js          -diff
+lib/parentmap.js      -diff
+lib/tgroup.js         -diff
+lib/synlabels.js      -diff
+lib/extra/pack_cn_chars.js   -diff
+lib/extra/pack_cn_works.js   -diff
+lib/extra/pack_cn_artists.js -diff
+
+# 二进制/图片
+*.png binary
+*.jpg binary
+*.ico binary
+*.gif binary
